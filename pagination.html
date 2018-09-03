@@ -1,0 +1,358 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>page.js</title>
+  <style type="text/css">
+  .ui-pagination .jump,.ui-pagination .page,.ui-pagination .pagesize,.ui-pagination ul>li {
+    display: inline-block
+  }
+  .ui-pagination {
+    margin: 10px 0;
+    padding: 0;
+    text-align: right
+  }
+  .ui-pagination .pagesize-wrap {
+    float: left
+  }
+  .ui-pagination .pagesize-wrap select {
+    margin: 0 5px;
+    min-width: 50px;
+    width: 50px
+  }
+  .ui-pagination .jump,.ui-pagination .pagesize {
+    margin-left: 20px
+  }
+  .ui-pagination ul {
+    margin: 0;
+    padding: 0
+  }
+  .ui-pagination ul>li {
+    margin: 0;
+    padding: 0;
+    list-style: none
+  }
+  .ui-pagination ul>li.disabled>a {
+    background-color: #f5f5f5!important;
+    color: #ccc!important
+  }
+  .ui-pagination ul>[disabled="true"]>a {
+    background-color: #f5f5f5!important;
+    color: #ccc!important;
+    cursor: not-allowed;
+    opacity: .9
+  }
+  .ui-pagination ul>li.current a,.ui-pagination ul>li>a:hover {
+    color: #fff;
+    background-color: #f60
+  }
+
+  .ui-pagination ul>li>a {
+    display: block;
+    padding: 5px 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-right: 5px
+  }
+  .ui-pagination .goto-input {
+    padding: 5px;
+    line-height: 16px;
+    border: 1px solid #ddd;
+    margin: 0 5px;
+    width: 30px
+  }
+  .ui-pagination a.go {
+    padding: 5px 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    background-color: #eee;
+    margin-left: 10px
+  }
+  .ui-pagination a.go:hover {
+    background-color: #f60;
+    color: #fff
+  }
+  </style>
+</head>
+
+<body>
+  <div id='z-page'></div>
+  <script type="text/javascript">
+  ;(function(window){
+   function Pagination(obj){
+    this.el = document.getElementById(obj.el);
+    this.current = obj.current || 1;
+    this.total = obj.total || 1;
+    this.pageSize = obj.pageSize || 10;
+    this.sizeType = obj.sizeType || [10,20,50,100];
+    this.type = obj.type || 'normal';
+    this.onPage = obj.onPage;
+    this.isShowSizeOption = obj.isShowSizeOption || false;
+    this.isShowPrevNext = obj.isShowPrevNext || true;
+    this.isShowTotal = obj.isShowTotal || true;
+    this.isShowJumpPage = obj.isShowJumpPage || true;
+    this.init();
+  }
+
+  Pagination.prototype = {
+    init: function(){
+      var self = this;
+      self.normalHtm();
+    },
+    normalHtm:function(){
+      var self = this;
+      self.remove();
+      var $paginationBox = document.createElement('div');
+      $paginationBox.className = 'ui-pagination';
+      
+      if(self.isShowSizeOption){
+        var $pageSize = self.createPageSizeOptions();
+        $paginationBox.appendChild($pageSize);
+      }
+
+      var $ul = document.createElement('ul');
+      $ul.className = 'page';
+
+      if(self.isShowPrevNext){
+        var $prevPage = self.createPrevPage();
+        $ul.appendChild($prevPage);
+      }
+
+      var $li = self.createLi();
+
+      for(var s=0;s<$li.length;s++){
+        $ul.appendChild($li[s]);
+      }
+
+      if(self.isShowPrevNext){
+        var $nextPage = self.createNextPage();
+        $ul.appendChild($nextPage);
+      }
+
+      $paginationBox.appendChild($ul);
+
+      if(self.isShowTotal){
+        var $total = self.createTotalPage();
+        $paginationBox.appendChild($total);
+      }
+
+      if(self.isShowJumpPage){
+        var $jump = self.createJumpPage();
+        $paginationBox.appendChild($jump);
+      }
+
+      this.el.appendChild($paginationBox);
+
+    },
+    remove: function(){
+      var div = this.el;
+      while(div.hasChildNodes())
+      {
+        div.removeChild(div.firstChild);
+      }
+    },
+    createPageSizeOptions:function(){
+      var self = this;
+      var $pageSize = document.createElement('div');
+      $pageSize.className = 'pagesize-wrap';
+      var select = document.createElement('select');
+      select.className = 'pagesize';
+      for(var i = 0 ;i < self.sizeType.length;i ++ ) {   
+        var option  =  document.createElement("option");   
+        var text  =  document.createTextNode(self.sizeType[i]);   
+        option.appendChild(text);   
+        option.value = self.sizeType[i];
+        select.appendChild(option);    
+      }
+      $pageSize.appendChild(select);
+      return $pageSize;
+    },
+    createTotalPage: function(){
+      var self = this;
+      var $total = document.createElement('div');
+      var $totalTxt;
+      $total.className = 'pagesize';
+      if(self.type && self.type == 'normal'){
+       $totalTxt = document.createTextNode('共' + self.total + '页');
+     }else{
+      $totalTxt = document.createTextNode(self.current + '/' + self.total);
+    }
+    $total.appendChild($totalTxt);
+    return $total;
+  },
+  createJumpPage: function(){
+    var self = this;
+    var $jump = document.createElement('div');
+    $jump.className = 'jump';
+    var $jumpTxt1 = document.createTextNode('跳至');
+    $jump.appendChild($jumpTxt1);
+    var $jumpInput = document.createElement('input');
+    $jumpInput.type = 'text';
+    $jumpInput.className = 'goto-input';
+    $jumpInput.maxLength = 8;
+    $jump.appendChild($jumpInput);
+    var $jumpTxt2 = document.createTextNode('页');
+    $jump.appendChild($jumpTxt2);
+    var $jumpA = document.createElement('a');
+    $jumpA.className = 'go';
+    $jumpA.href = 'javascript:void(0);';
+    var $jumpATxt = document.createTextNode('确定');
+    $jumpA.appendChild($jumpATxt);
+    $jump.appendChild($jumpA);
+    $jumpA.onclick = function(){
+      var val = this.parentNode.childNodes[1].value;
+      if(val == null) return;
+      val = Math.max(1,val);
+      val = Math.min(self.total,val);
+      self.current = val*1;
+      self.onPage(self.current,self.pageSize);
+      self.normalHtm();
+    }
+    return $jump;
+  },
+  createPrevPage: function(){
+    var self = this;
+    var $prevPage = document.createElement('li');
+    $prevPage.className = 'prev';
+    var $prevPageA = document.createElement('a');
+    var $prevPageATxt = document.createTextNode('上一页');
+    $prevPageA.appendChild($prevPageATxt);
+    $prevPage.appendChild($prevPageA);
+    if(self.current == 1){
+      $prevPage.setAttribute('disabled','true');
+    }
+    $prevPage.onclick = function(){
+      if(self.current <= 1) return;
+      self.current = self.current*1 - 1;
+      self.onPage(self.current,self.pageSize);
+      self.normalHtm();
+    }
+    return $prevPage;
+  },
+  createNextPage: function(){
+    var self = this;
+    var $nextPage = document.createElement('li');
+    $nextPage.className = 'next';
+    var $nextPageA = document.createElement('a');
+    var $nextPageATxt = document.createTextNode('下一页');
+    $nextPageA.appendChild($nextPageATxt);
+    $nextPage.appendChild($nextPageA);
+    if(self.current == self.total){
+      $nextPage.setAttribute('disabled','true');
+    }
+    $nextPage.onclick = function(){
+      if(self.current >= self.total) return;
+      self.current = self.current*1 + 1;
+      self.onPage(self.current,self.pageSize);
+      self.normalHtm();
+    }
+    return $nextPage;
+  },
+  createLi: function(){
+    var self = this;
+    var liArray = [];
+    var list = self.pageList();
+    if(list && list.length > 0){
+      for(var i=0,j=list.length; i < j; i++){
+        if(list[i] == 0){
+          var node = document.createElement('li');
+          var nodeText = document.createTextNode('...');
+          node.appendChild(nodeText);
+          liArray.push(node);
+        }else{
+          var liNode = document.createElement('li');
+          if(list[i] == this.current){
+            liNode.className = 'current';
+          }else{
+            liNode.className = '';
+          }
+          var aNode = document.createElement('a');
+          aNode.href = 'javascript:void(0)';
+          var aNodeTxt = document.createTextNode(list[i]);
+          aNode.appendChild(aNodeTxt);
+
+          liNode.onclick = function(){
+
+            var val = this.childNodes[0].innerText;
+            self.current = val;
+            self.onPage(val,self.pageSize);
+            self.normalHtm();
+          }
+
+          liNode.appendChild(aNode);
+
+          liArray.push(liNode);
+
+        }
+      }
+    }
+    return liArray;
+  },
+  //修正条数选择数组
+  sizeType:function(){
+    if(this.sizeType.indexOf(this.pageSize*1) == -1){
+      this.sizeType.push(this.pageSize);
+    }
+    this.sizeType.sort(function(a,b){
+      return a-b;
+    });
+  },
+  //获取页码列表数组
+  pageList:function(){
+    var pageNum = this.total;
+    var current = this.current*1;
+    if(this.total>=0 && this.pageSize && this.isShowSizeOption === true){
+      pageNum = this.total = Math.ceil(this.total / this.pageSize);
+    }
+    //var prev = true,next = true;
+    var list = [];
+    if(pageNum<=10){
+      for(var i=1;i<=pageNum;i++){
+        list.push(i);
+      }
+    }else{
+      var start = current - 5;
+      var end = current + 5;
+      if(current<=5){
+        list = [1,2,3,4,5,6,7,0,pageNum-1,pageNum];
+      }else if(end>=pageNum){
+        list = [1,2,0,pageNum-6,pageNum-5,pageNum-4,pageNum-3,pageNum-2,pageNum-1,pageNum];
+      }else{
+        list = [1,0,current-2,current-1,current,current+1,current+2,0,pageNum]; 
+      }
+    }
+    return list;
+  }
+}
+
+window.Pagination = Pagination;
+
+})(window)
+
+</script>
+
+
+
+<script type="text/javascript">
+var a = new Pagination({
+//容器
+el:'z-page',
+//当前页码
+current:1,
+//总页码
+total:15,
+//每页显示条数
+pageSize:10,
+//分页模式
+type:"normal",
+//是否显示分页数量下拉项
+isShowSizeOption:false,
+//回调函数
+onPage:function(num,size){
+  console.log(num);
+}
+});
+</script>
+</body>
+</html>
