@@ -10,9 +10,9 @@
       this.type = obj.type || 'normal';
       this.onPage = obj.onPage || function(){};//点击页码执行的函数，两个参数，当前页数，每页查询条数
       this.isShowSizeOption = obj.isShowSizeOption || false;//是否显示查询条数选择框
-      this.isShowPrevNext = obj.isShowPrevNext || true;//是否显示上下页
+      this.isShowPrevNext = obj.isShowPrevNext == null ? true : obj.isShowPrevNext;//是否显示上下页
       this.isShowTotal = obj.isShowTotal == null ? true : obj.isShowTotal;//是否显示总页数
-      this.isShowJumpPage = obj.isShowJumpPage || true;//是否显示跳转
+      this.isShowJumpPage = obj.isShowJumpPage == null ? true : obj.isShowJumpPage;//是否显示跳转
       var pageText = obj.paginationText || {};//文字描述
       this.paginationText = this.setText(pageText);
       if(obj.style){
